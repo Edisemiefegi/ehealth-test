@@ -1,13 +1,20 @@
-
-$primary: #39322A;
-$secondary: #A16F4C;
-$background: #FCFAF4;
-
+$primary: #39322a;
+$secondary: #a16f4c;
+$background: #fcfaf4;
+$muted: #f8f9fa;
 
 $theme-colors: (
   "primary": $primary,
   "secondary": $secondary,
-  "background": $background
+  "background": $background,
+  "muted": $muted,
 );
 
 @import "bootstrap/scss/bootstrap";
+
+.text-xs {
+  font-size: 0.75rem;
+}
+.text-xxs {
+  font-size: 0.65rem;
+}
