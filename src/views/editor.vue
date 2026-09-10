@@ -26,9 +26,11 @@
 
             <!-- Editor -->
             <section>
-              <p>Text editor here</p>
-
-              <div class="vh-100 bg-primary w-100"></div>
+              <Editor
+                v-model="content"
+                editorStyle="height: 320px"
+                placeholder="Start writing..."
+              />
             </section>
           </div>
         </section>
@@ -91,6 +93,10 @@ import { Sparkles } from "@primeicons/vue";
 import Nav from "../components/editor/Nav.vue";
 import Button from "../components/base/Button.vue";
 import Input from "../components/base/Input.vue";
+import Editor from "primevue/editor";
+import { ref } from "vue";
+
+const content = ref("");
 </script>
 
 <style lang="scss">
@@ -104,5 +110,22 @@ import Input from "../components/base/Input.vue";
 
 .sidebar {
   top: 90px;
+}
+
+.p-editor {
+  background: var(--bs-background);
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.p-editor-toolbar,
+.p-editor-content {
+  background: var(--bs-background) !important;
+  border: 0 !important;
+}
+
+.p-editor-content .ql-editor {
+  background: var(--bs-background) !important;
+  color: var(--bs-body-color) !important;
 }
 </style>
