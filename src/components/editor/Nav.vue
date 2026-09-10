@@ -6,9 +6,15 @@
       <!--  Links -->
       <div class="d-flex align-items-center gap-3">
         <RouterLink to="/"> <AngleLeft /></RouterLink>
-        <Button variant="secondary" size="sm" class="text-white opacity-75">
+        <Button
+          @click="toggle"
+          variant="secondary"
+          size="sm"
+          class="text-white opacity-75"
+        >
           My Drafts
         </Button>
+        <DraftPopOver ref="draftPopover" />
       </div>
 
       <div class="d-flex align-items-center gap-2 justify-content-center">
@@ -33,6 +39,13 @@
 <script setup lang="ts">
 import { AngleLeft } from "@primeicons/vue";
 import Button from "../base/Button.vue";
+import { ref } from "vue";
+import DraftPopOver from "./DraftPopOver.vue";
+
+const draftPopover = ref();
+const toggle = (event: MouseEvent) => {
+  draftPopover.value.toggle(event);
+};
 </script>
 
 <style scoped lang="scss">
