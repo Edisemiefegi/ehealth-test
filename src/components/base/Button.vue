@@ -1,7 +1,7 @@
 <template>
   <button
     :type="type"
-    class="btn"
+    class="btn d-flex align-items-center justify-content-center gap-1 "
     :class="[variantClass, sizeClass, { 'rounded-pill': rounded }]"
     :disabled="disabled"
   >
@@ -35,9 +35,9 @@ const props = withDefaults(defineProps<Props>(), {
 const variantClass = computed(() => {
   const variants = {
     primary: "btn-primary",
-    secondary: "btn-secondary",
+    secondary: "btn-secondary text-white",
     ghost: "btn-ghost",
-    outline: "btn-outline",
+    outline: "btn-outline border",
   };
 
   return variants[props.variant];

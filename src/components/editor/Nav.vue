@@ -20,9 +20,24 @@
       <div class="d-flex align-items-center gap-2 justify-content-center">
         <!-- Actions -->
         <div class="d-flex align-items-center gap-2">
-          <Button size="sm" variant="outline"> Draft </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            :disabled="currentPost.saveState === 'saving'"
+            @click="onSaveDraft"
+          >
+            {{ currentPost.saveState === "saving" ? "Saving..." : "Draft" }}
+          </Button>
 
-          <Button size="sm"> Publish </Button>
+          <Button
+            size="sm"
+            :disabled="currentPost.saveState === 'saving'"
+            @click="onPublish"
+          >
+            {{
+              currentPost.status === "published" ? "Published" : "Publish"
+            }}</Button
+          >
         </div>
 
         <!--  Profile -->
@@ -42,10 +57,47 @@ import Button from "../base/Button.vue";
 import { ref } from "vue";
 import DraftPopOver from "./DraftPopOver.vue";
 
+import { useToast } from "primevue/usetoast";
+import { useEditor } from "../../composable/useEditor.ts";
+
+const toast = useToast();
+
+
 const draftPopover = ref();
 const toggle = (event: MouseEvent) => {
   draftPopover.value.toggle(event);
 };
+const { currentPost, saveCurrentDraft, publishCurrentPost, refreshDrafts } = useEditor();
+
+async function onSaveDraft() {
+  try {
+    await saveCurrentDraft();
+    toast.add({ severity: "success", summary: "Draft saved.", life: 3000 });
+
+    if (currentPost.saveState !== "error") await refreshDrafts();
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Something went wrong",
+      life: 3000,
+    });
+  }
+}
+
+async function onPublish() {
+  try {
+    await publishCurrentPost();
+    toast.add({ severity: "success", summary: "Post Published.", life: 3000 });
+
+    if (currentPost.saveState !== "error") await refreshDrafts();
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Something went wrong",
+      life: 3000,
+    });
+  }
+}
 </script>
 
 <style scoped lang="scss">

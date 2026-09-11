@@ -1,86 +1,103 @@
 <template>
-  <main class="bg-background vh-100 overflow-y-auto py-5">
+  <main class="bg-background vh-100 overflow-y-auto pt-5">
     <Nav />
 
     <div class="container">
-      <!-- Content -->
       <div class="row g-4 py-5">
         <!-- Blog editor -->
-        <section class="col-12 col-lg-9">
+        <section class="col-12 col-lg-8">
           <div class="editor-scroll">
-            <!-- Title -->
             <header>
-              <div class="d-flex align-items-center justify-content-between">
-                <p class="text-xs text-muted mb-0">TITLE</p>
-
-                <Button variant="outline" size="sm">
-                  <Sparkles />
-                  Generate title
-                </Button>
-              </div>
-
-              <Input class="fs-1" placeholder="Enter blog title..." />
+              <AiGenerator
+                label="TITLE"
+                :status="titleAi.status.value"
+                :suggestion="titleAi.suggestion.value"
+                @generate="titleAi.generate"
+                @apply="currentPost.title = $event"
+              />
+              <Input
+                v-model="currentPost.title"
+                placeholder="Enter blog title..."
+                class="fs-1"
+              />
             </header>
 
             <hr />
 
-            <!-- Editor -->
             <section>
               <Editor
-                v-model="content"
+                v-model="currentPost.content"
                 editorStyle="height: 320px"
                 placeholder="Start writing..."
+              />
+            </section>
+
+            <section>
+              <AiGenerator
+                label="SUMMARY"
+                :suggestion="summaryAi.suggestion.value"
+                :status="summaryAi.status.value"
+                @generate="summaryAi.generate"
+                @apply="currentPost.excerpt = $event"
+              />
+              <Input
+                v-model="currentPost.excerpt"
+                placeholder="Generate a summary from your current draft."
+                class="text-small opacity-75"
               />
             </section>
           </div>
         </section>
 
         <!-- Sidebar -->
-        <aside class="col-12 col-lg-3">
-          <div class="sticky-top bg-white p-4 rounded-3 sidebar">
-            <!-- Summary -->
-            <section class="mb-5">
-              <div
-                class="d-flex align-items-center justify-content-between mb-3"
-              >
-                <p class="text-xs text-muted mb-0">SUMMARY</p>
+        <aside class="col-12 col-lg-4">
+          <div class="sticky-top z-0 pt-5 d-flex flex-column gap-3">
+            <AiGenerator
+              label="KEYWORDS"
+              :suggestion="keywordsAi.suggestion.value"
+              :status="keywordsAi.status.value"
+              @generate="keywordsAi.generate"
+              @apply="currentPost.keywords = $event"
+            />
 
-                <Button variant="outline" size="sm">
-                  <Sparkles />
-                  Generate
+            <div
+              class="p-2 d-flex flex-wrap align-content-start gap-2 border rounded-2 keywords-box"
+            >
+              <div
+                v-for="keyword in currentPost.keywords"
+                :key="keyword"
+                class="rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1 bg-muted text-xxs flex-shrink-0"
+              >
+                <span class="text-truncate">
+                  {{ keyword }}
+                </span>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class=""
+                  :aria-label="`Remove ${keyword}`"
+                  @click="removeKeyword(keyword)"
+                >
+                  <Times />
                 </Button>
               </div>
+              <Input
+                v-model="keywordInput"
+                class="text-xs flex-grow-1"
+                placeholder="add keyword..."
+                style="min-width: 6rem"
+                @keydown.enter.prevent="addManualKeyword"
+              />
+            </div>
 
-              <div class="border border-dotted border-secondary rounded-3 p-3">
-                <p class="fw-semibold">
-                  A clear sense of what this draft is saying.
-                </p>
-
-                <p class="text-xxs fw-light mb-0">Results will appear here.</p>
-              </div>
-            </section>
-
-            <!-- Keywords -->
-            <section>
-              <div
-                class="d-flex align-items-center justify-content-between mb-3"
-              >
-                <p class="text-xs text-muted mb-0">KEYWORDS</p>
-
-                <Button variant="outline" size="sm">
-                  <Sparkles />
-                  Generate
-                </Button>
-              </div>
-
-              <div
-                class="border border-dotted border-secondary rounded-3 d-flex align-items-center gap-2 p-3"
-              >
-                <span class="bg-muted rounded p-2 text-xs"> sense </span>
-
-                <Input placeholder="add.." />
-              </div>
-            </section>
+            <SuggestionModal
+              ref="keywordsPopover"
+              :suggestions="keywordsAi.suggestion.value"
+              :status="keywordsAi.status.value"
+              @retry="keywordsAi.generate"
+              @apply="applyKeywords"
+            />
           </div>
         </aside>
       </div>
@@ -89,14 +106,72 @@
 </template>
 
 <script setup lang="ts">
-import { Sparkles } from "@primeicons/vue";
+import { Times } from "@primeicons/vue";
+import { ref } from "vue";
 import Nav from "../components/editor/Nav.vue";
 import Button from "../components/base/Button.vue";
 import Input from "../components/base/Input.vue";
 import Editor from "primevue/editor";
-import { ref } from "vue";
+import SuggestionModal from "../components/editor/SuggestionModal.vue";
+import AiTextField from "../components/editor/AiTextField.vue";
+import { useAiSuggestion } from "../composable/useAiGenerator.ts";
+import { simulateRequest } from "../utils.ts";
+import AiGenerator from "../components/editor/AiGenerator.vue";
+import { useEditor } from "../composable/useEditor.ts";
 
-const content = ref("");
+const keywordInput = ref("");
+const { currentPost } = useEditor();
+
+const titleAi = useAiSuggestion<string>(() =>
+  simulateRequest("How to Structure a Blog Post Readers Actually Finish"),
+);
+
+const summaryAi = useAiSuggestion<string>(() =>
+  simulateRequest(
+    "This draft explores how thoughtful structure and clear writing can help readers stay engaged. It focuses on simplifying ideas, improving readability, and creating content that communicates its message effectively.",
+  ),
+);
+
+const keywordsAi = useAiSuggestion<string[]>(() =>
+  simulateRequest([
+    "Blog writing",
+    "Content strategy",
+    "Headlines",
+    "Readability",
+    "Writing tips",
+  ]),
+);
+
+function applyKeywords(newKeywords: string | string[]) {
+  const list = Array.isArray(newKeywords) ? newKeywords : [newKeywords];
+  currentPost.keywords = [...new Set([...currentPost.keywords, ...list])];
+}
+
+function addKeyword(value: string) {
+  const keyword = value.trim();
+
+  if (!keyword) return;
+
+  const alreadyExists = currentPost.keywords.some(
+    (item) => item.toLowerCase() === keyword.toLowerCase(),
+  );
+
+  if (alreadyExists) return;
+
+  currentPost.keywords.push(keyword);
+}
+
+function addManualKeyword() {
+  addKeyword(keywordInput.value);
+
+  keywordInput.value = "";
+}
+
+function removeKeyword(keyword: string) {
+  currentPost.keywords = currentPost.keywords.filter(
+    (item) => item !== keyword,
+  );
+}
 </script>
 
 <style lang="scss">
@@ -106,10 +181,6 @@ const content = ref("");
 
 .editor-scroll {
   padding-bottom: 5rem;
-}
-
-.sidebar {
-  top: 90px;
 }
 
 .p-editor {

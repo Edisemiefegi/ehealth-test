@@ -7,7 +7,7 @@ const routes = [
     component: () => import("./views/landing.vue"),
   },
   {
-    path: "/editor",
+    path: "/editor/:id",
     name: "Editor",
     component: () => import("./views/editor.vue"),
   },

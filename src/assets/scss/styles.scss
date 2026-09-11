@@ -2,6 +2,7 @@ $primary: #39322a;
 $secondary: #a16f4c;
 $background: #fcfaf4;
 $muted: #f8f9fa;
+$border: #e5dcd6;
 
 $theme-colors: (
   "primary": $primary,
@@ -17,4 +18,8 @@ $theme-colors: (
 }
 .text-xxs {
   font-size: 0.65rem;
+}
+
+.border {
+  border: 1px solid $border !important;
 }
