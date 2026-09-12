@@ -7,7 +7,12 @@
       <p class="text-muted"><Sparkles /></p>
       <div class="flex-grow-1">
         <p v-if="status === 'error'" class="text-xxs text-danger">
-{{ errorMessage || "Something went wrong. Try again." }}        </p>
+          {{ errorMessage || "Something went wrong. Try again." }}
+        </p>
+
+        <p v-else-if="status === 'loading'">
+          <Spinner/>
+        </p>
 
         <p v-else class="text-xxs mb-0">
           {{ suggestions }}
@@ -40,6 +45,7 @@ import { ref } from "vue";
 import { Check, Sparkles } from "@primeicons/vue";
 import Button from "../base/Button.vue";
 import { Popover } from "primevue";
+import Spinner from "../base/Spinner.vue";
 
 type AsyncStatus = "idle" | "loading" | "error" | "success";
 
@@ -54,9 +60,9 @@ defineExpose({
 });
 
 const props = defineProps<{
-  suggestions?: T | null; 
+  suggestions?: T | null;
   status?: AsyncStatus;
-  errorMessage?: string | null
+  errorMessage?: string | null;
 }>();
 
 const emit = defineEmits<{

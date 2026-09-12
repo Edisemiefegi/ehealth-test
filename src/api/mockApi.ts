@@ -125,6 +125,21 @@ export function getPost(postId: string) {
   return simulateRequest(post, { delay: 300, failRate: 0 });
 }
 
+export function deletePost(postId: string) {
+  const db = loadDb();
+
+  db.posts = db.posts.filter(
+    (post) => post.post_id !== postId
+  );
+
+  saveDb(db);
+
+  return simulateRequest(undefined, {
+    delay: 500,
+    failRate: 0,
+  });
+}
+
 export function getAiSuggestion(suggestionId: string) {
   const db = loadDb();
   const suggestion = db.aiSuggestions.find((s) => s.suggestion_id === suggestionId);

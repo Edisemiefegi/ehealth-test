@@ -7,9 +7,14 @@ const routes = [
     component: () => import("./views/landing.vue"),
   },
   {
-    path: "/editor/:id",
+    path: "/editor",
     name: "Editor",
     component: () => import("./views/editor.vue"),
+  },
+  {
+    path: "/editor/:id",
+    name: "EditPost",
+    component: () => import("./views/editPost.vue"),
   },
   
 ];

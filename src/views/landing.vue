@@ -1,6 +1,6 @@
 <template>
   <main class="bg-background vh-100 overflow-y-auto pt-5">
-    <Nav :is-editor="false" @create-editor="createPost" />
+    <Nav :is-editor="false"/>
 
     <div class="container py-5 d-flex flex-column gap-4">
       <section
@@ -30,12 +30,12 @@
         <Search />
       </section>
 
-      <!-- Loading state -->
-      <section v-if="publishedLoading" class="text-center text-muted py-5">
-        Loading posts...
+    
+      <section v-if="publishedLoading" class="">
+        <Spinner/>
       </section>
 
-      <!-- Empty state -->
+
       <section
         v-else-if="!publishedPosts.length"
         class="text-center text-muted py-5"
@@ -43,7 +43,6 @@
         No published posts yet. Publish a draft to see it here.
       </section>
 
-      <!-- Posts grid -->
       <section v-else class="row g-4">
         <div v-for="post in publishedPosts" :key="post.post_id">
           <PostCard :post="post" @preview="openPreview" />
@@ -65,6 +64,7 @@ import { Plus, Search } from "@primeicons/vue";
 import Postpreviewmodal from "../components/blog/Postpreviewmodal.vue";
 import type { Post, PostPreview } from "../types/index.ts";
 import { getAiSuggestion } from "../api/mockApi.ts";
+import Spinner from "../components/base/Spinner.vue";
 
 const router = useRouter();
 const { createNewPost, publishedPosts, publishedLoading, refreshPublished } =
@@ -100,7 +100,7 @@ async function createPost() {
     const postId = await createNewPost();
     if (!postId) return;
 
-    await router.push({ name: "Editor", params: { id: postId } });
+    await router.push({ name: "EditPost", params: { id: postId } });
   } finally {
     isCreating.value = false;
   }

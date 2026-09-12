@@ -5,6 +5,10 @@
     >
       <!--  Links -->
       <div class="d-flex align-items-center gap-3">
+        <div v-if="isEditor && !hide">
+          <RouterLink to="/editor"><AngleLeft /></RouterLink>
+        </div>
+
         <Button
           v-if="isEditor"
           @click="toggle"
@@ -27,7 +31,7 @@
             class="text-muted"
             >{{ isEditor ? "All posts" : "Editor" }}</Button
           >
-          <div class="d-flex align-items-center gap-2" v-if="isEditor">
+          <div class="d-flex align-items-center gap-2" v-if="isEditor && !hide">
             <Button
               size="sm"
               variant="outline"
@@ -68,25 +72,29 @@ import { useRouter } from "vue-router";
 
 import { useToast } from "primevue/usetoast";
 import { useEditor } from "../../composable/useEditor.ts";
+import { AngleLeft } from "@primeicons/vue";
 const router = useRouter();
 
 const toast = useToast();
 
 const draftPopover = ref();
 
-const props = withDefaults(defineProps<{ isEditor?: boolean }>(), { isEditor: true });
+const props = withDefaults(
+  defineProps<{ isEditor?: boolean; hide?: boolean }>(),
+  { isEditor: true, hide: false },
+);
 
 const emit = defineEmits<{
-  "createEditor": [];
+  createEditor: [];
 }>();
 
 function navigate() {
   if (props.isEditor) {
     router.push("/");
     return;
+  } else {
+    router.push("/editor");
   }
-
-  emit("createEditor");
 }
 
 const toggle = (event: MouseEvent) => {
@@ -113,7 +121,16 @@ async function onSaveDraft() {
 
 async function onPublish() {
   try {
-    await publishCurrentPost();
+    const published = await publishCurrentPost();
+    if (!published) {
+      toast.add({
+        severity: "warn",
+        summary: "Cannot publish",
+        detail: "Please add a title and content before publishing.",
+        life: 3000,
+      });
+      return;
+    }
     toast.add({ severity: "success", summary: "Post Published.", life: 3000 });
 
     if (currentPost.saveState !== "error") await refreshDrafts();

@@ -1,205 +1,180 @@
 <template>
-  <main class="bg-background vh-100 overflow-y-auto pt-5">
-    <Nav :iseditor="true" />
+  <main class="min-vh-100 bg-background">
+    <Nav :hide="true" />
 
-    <div class="container">
-      <div class="row g-4 py-5">
-        <!-- Blog editor -->
-        <section class="col-12 col-lg-8">
-          <div class="editor-scroll">
-            <header>
-              <AiGenerator
-                label="TITLE"
-                :error-message="titleAi.errorMessage.value"
-                :status="titleAi.status.value"
-                :suggestion="titleAi.suggestion.value"
-                @generate="titleAi.generate"
-                @apply="currentPost.title = $event"
-              />
-              <Input
-                v-model="currentPost.title"
-                placeholder="Enter blog title..."
-                class="fs-1"
-              />
-            </header>
+    <div class="container pt-5 pb-5" style="padding-top: 100px !important">
+      <!-- Header -->
+      <div
+        class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-5"
+      >
+        <div>
+          <p class="text-uppercase text-xxs fw-semibold text-muted mb-2">
+            Writing workspace
+          </p>
 
-            <hr />
+          <h1 class="display-6 fw-semibold mb-2">
+            What do you want to write today?
+          </h1>
 
-            <section>
-              <Editor
-                v-model="currentPost.content"
-                editorStyle="height: 320px"
-                placeholder="Start writing..."
-              />
-            </section>
+          <p class="text-muted mb-0">
+            Create, refine, and publish your next blog post.
+          </p>
+        </div>
+      </div>
 
-            <section>
-              <AiGenerator
-                label="SUMMARY"
-              :error-message="summaryAi.errorMessage.value"
-                :suggestion="summaryAi.suggestion.value"
-                :status="summaryAi.status.value"
-                @generate="summaryAi.generate"
-                @apply="currentPost.excerpt = $event"
-              />
-              <Input
-                v-model="currentPost.excerpt"
-                placeholder="Generate a summary from your current draft."
-                class="text-small opacity-75"
-              />
-            </section>
-          </div>
-        </section>
-
-        <!-- Sidebar -->
-        <aside class="col-12 col-lg-4">
-         <div class="sticky-top z-0 pt-5 ">
-           <div class=" d-flex flex-column mb-3  gap-3">
-            <AiGenerator
-              label="KEYWORDS"
-              :error-message="keywordsAi.errorMessage.value"
-              :suggestion="keywordsAi.suggestion.value"
-              :status="keywordsAi.status.value"
-              @generate="keywordsAi.generate"
-              @apply="currentPost.keywords = $event"
-            />
-
+      <!-- Start writing -->
+      <section class="bg-white border rounded-4 p-4 p-md-5 mb-5">
+        <div class="row align-items-center">
+          <div class="col-lg-8">
             <div
-              class="p-2 d-flex flex-wrap align-content-start gap-2 border rounded-2 keywords-box"
+              class="d-flex align-items-center justify-content-center bg-secondary-subtle rounded-3"
+              style="width: 44px; height: 44px"
             >
-              <div
-                v-for="keyword in currentPost.keywords"
-                :key="keyword"
-                class="rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1 bg-muted text-xxs flex-shrink-0"
-              >
-                <span class="text-truncate">
-                  {{ keyword }}
-                </span>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  class=""
-                  :aria-label="`Remove ${keyword}`"
-                  @click="removeKeyword(keyword)"
-                >
-                  <Times />
-                </Button>
-              </div>
-              <Input
-                v-model="keywordInput"
-                class="text-xs flex-grow-1"
-                placeholder="add keyword..."
-                style="min-width: 6rem"
-                @keydown.enter.prevent="addManualKeyword"
-              />
+              <Pencil class="text-secondary" />
             </div>
 
-            <SuggestionModal
-              ref="keywordsPopover"
-              :suggestions="keywordsAi.suggestion.value"
-              :status="keywordsAi.status.value"
-              @retry="keywordsAi.generate"
-              @apply="applyKeywords"
-            />
+            <h2 class="h4 fw-semibold mt-4 mb-2">Start with a blank page</h2>
+
+            <p class="text-muted mb-4 mb-lg-0">
+              Put your ideas into words and use AI to help you shape them into
+              something worth publishing.
+            </p>
           </div>
 
-          <Button class="w-100" @click="previewModal?.open()">Preview</Button>
-         </div>
-        </aside>
-      </div>
-      <Postpreviewmodal ref="previewModal" :post="currentPost" />
+          <div class="col-lg-4 text-lg-end">
+            <Button variant="outline" @click="createPost">
+              Start writing
+              <ArrowRight />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Drafts -->
+      <section>
+        <div class="d-flex justify-content-between align-items-end mb-3">
+          <div>
+            <h2 class="h6 fw-semibold mb-1">Recent drafts</h2>
+
+            <p class="text-xxs text-muted mb-0">
+              Continue working on something you started.
+            </p>
+          </div>
+
+          <span class="text-xxs text-muted">
+            {{ drafts.length }} {{ drafts.length === 1 ? "draft" : "drafts" }}
+          </span>
+        </div>
+
+        <!-- Draft list -->
+        <div v-if="drafts.length" class="row g-3">
+          <div
+            v-for="draft in drafts"
+            :key="draft.post_id"
+            class="col-12 col-md-6 col-lg-4"
+          >
+            <div class="bg-white border rounded-3 p-3 w-100 text-start">
+              <div class="d-flex justify-content-between">
+                <div
+                  class="d-flex align-items-center justify-content-center bg-light rounded-2"
+                  style="width: 36px; height: 36px"
+                >
+                  <FileEdit class="text-secondary" />
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <Button @click.stop="handleDelete(draft)" variant="ghost">
+                    <Trash style="color: red" class="fw-bold" />
+                  </Button>
+
+                  <Button @click="openDraft" variant="ghost">
+                    <ArrowRight />
+                  </Button>
+                </div>
+              </div>
+
+              <p class="fw-semibold text-sm mb-0 text-truncate">
+                {{ draft.title || "Untitled draft" }}
+              </p>
+
+              <p class="text-xxs text-muted mb-0">
+                Last edited {{ formatRelativeDate(draft.updated_at) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div v-else class="bg-white border rounded-3 text-center py-5 px-3">
+          <div
+            class="d-flex align-items-center justify-content-center bg-light rounded-circle mx-auto mb-3"
+            style="width: 44px; height: 44px"
+          >
+            <i class="pi pi-file text-muted"></i>
+          </div>
+
+          <p class="text-sm fw-semibold mb-1">No drafts yet</p>
+
+          <p class="text-xxs text-muted mb-0">
+            Your unfinished posts will appear here.
+          </p>
+        </div>
+      </section>
     </div>
   </main>
 </template>
 
 <script setup lang="ts">
-import { Times } from "@primeicons/vue";
-import { ref } from "vue";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+
 import Nav from "../components/editor/Nav.vue";
 import Button from "../components/base/Button.vue";
-import Input from "../components/base/Input.vue";
-import Editor from "primevue/editor";
-import SuggestionModal from "../components/editor/SuggestionModal.vue";
-import { useAiSuggestion } from "../composable/useAiGenerator.ts";
-import AiGenerator from "../components/editor/AiGenerator.vue";
-import { useEditor } from "../composable/useEditor.ts";
-import Postpreviewmodal from "../components/blog/Postpreviewmodal.vue";
-import { generateKeywordSuggestions, generateSummarySuggestion, generateTitleSuggestion } from "../api/ai.ts";
+import { useEditor } from "../composable/useEditor";
+import type { Post } from "../types";
+import { formatRelativeDate } from "../utils";
+import { ArrowRight, FileEdit, Pencil, Trash } from "@primeicons/vue";
 
-const keywordInput = ref("");
-const previewModal = ref();
+const router = useRouter();
 
-const { currentPost } = useEditor();
-const titleAi = useAiSuggestion<string>(() =>
-  generateTitleSuggestion(currentPost.content)
-);
+const { drafts, refreshDrafts, createNewPost, deleteDraft } = useEditor();
 
-const summaryAi = useAiSuggestion<string>(() =>
-  generateSummarySuggestion(currentPost.content)
+onMounted(refreshDrafts);
 
-);
+async function createPost() {
+  const postId = await createNewPost();
 
-const keywordsAi = useAiSuggestion<string[]>(() =>
-generateKeywordSuggestions(currentPost.content)
- 
-);
+  if (!postId) return;
 
-function applyKeywords(newKeywords: string | string[]) {
-  const list = Array.isArray(newKeywords) ? newKeywords : [newKeywords];
-  currentPost.keywords = [...new Set([...currentPost.keywords, ...list])];
+  await router.push({
+    name: "EditPost",
+    params: {
+      id: postId,
+    },
+  });
 }
 
-function addKeyword(value: string) {
-  const keyword = value.trim();
+function openDraft(post: Post) {
+  router.push({
+    name: "EditPost",
+    params: {
+      id: post.post_id,
+    },
+  });
+}
 
-  if (!keyword) return;
+async function handleDelete(post: Post) {
+  console.log(post, "shshs");
 
-  const alreadyExists = currentPost.keywords.some(
-    (item) => item.toLowerCase() === keyword.toLowerCase(),
+  const confirmed = window.confirm(
+    `Delete "${post.title || "Untitled draft"}"?`,
   );
 
-  if (alreadyExists) return;
+  if (!confirmed) return;
 
-  currentPost.keywords.push(keyword);
-}
+  await deleteDraft(post.post_id);
 
-function addManualKeyword() {
-  addKeyword(keywordInput.value);
-
-  keywordInput.value = "";
-}
-
-function removeKeyword(keyword: string) {
-  currentPost.keywords = currentPost.keywords.filter(
-    (item) => item !== keyword,
-  );
+  console.log(post, "shshsafatt");
 }
 </script>
 
-<style lang="scss">
-.border-dotted {
-  border-style: dotted !important;
-}
-
-.editor-scroll {
-  padding-bottom: 5rem;
-}
-
-.p-editor {
-  background: var(--bs-background);
-  border: 0 !important;
-  box-shadow: none !important;
-}
-
-.p-editor-toolbar,
-.p-editor-content {
-  background: var(--bs-background) !important;
-  border: 0 !important;
-}
-
-.p-editor-content .ql-editor {
-  background: var(--bs-background) !important;
-  color: var(--bs-body-color) !important;
-}
-</style>
+<style scoped scss></style>

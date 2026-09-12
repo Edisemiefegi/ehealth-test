@@ -1,8 +1,8 @@
 <template>
-  <Popover ref="popover" class="">
-    <div class="p-2 overflow-y-auto" style="width: 300px">
+  <Popover ref="popover" class="" style="z-index:9998;">
+    <div class="p-2 overflow-y-auto" style="width: 300px; max-height: 400px;" >
       <div v-if="draftsLoading" class="px-2 py-4 text-center">
-        <Spinner class="text-secondary spinner-border spinner-border-sm" />
+        <Spinner/>
       </div>
 
       <div v-else class="d-flex flex-column gap-1">
@@ -23,7 +23,6 @@
               <File />
             </span>
 
-            <!-- Draft details -->
             <div class="min-w-0 overflow-hidden">
               <p class="fw-semibold text-xs mb-1 text-truncate">
                 {{ draft.title || "Untitled draft" }}
@@ -48,17 +47,21 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import Popover from "primevue/popover";
-import { File, Spinner } from "@primeicons/vue";
+import { File } from "@primeicons/vue";
 import type { Post } from "../../types";
 import { getAiSuggestion } from "../../api/mockApi";
 import { formatRelativeDate } from "../../utils";
 import { useEditor } from "../../composable/useEditor";
+import Spinner from "../base/Spinner.vue";
+import { useRoute, useRouter } from "vue-router";
 
 const popover = ref();
 const { drafts, draftsLoading, refreshDrafts, currentPost, loadDraft } =
   useEditor();
 
 onMounted(refreshDrafts);
+const router = useRouter();
+const route = useRoute();
 
 const toggle = async (event: MouseEvent) => {
   popover.value.toggle(event);
@@ -72,6 +75,16 @@ async function selectDraft(post: Post) {
   const suggestion = post.ai_suggestion_id
     ? await getAiSuggestion(post.ai_suggestion_id)
     : undefined;
+
+    console.log(route.path, 'shhs', post.post_id);
+
+    await router.push({
+    name: "EditPost",
+    params: {
+      id: post.post_id,
+    },
+  });
+
 
   loadDraft(post, suggestion?.keywords ?? []);
   popover.value?.hide();
