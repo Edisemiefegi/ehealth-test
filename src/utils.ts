@@ -23,6 +23,13 @@ export function slugify(value: string): string {
   return slug || "untitled";
 }
 
+export function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function formatRelativeDate(iso: string): string {
   const date = new Date(iso);
   const diffMinutes = Math.round((Date.now() - date.getTime()) / 60000);

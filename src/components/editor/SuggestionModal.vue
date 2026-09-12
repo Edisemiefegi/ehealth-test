@@ -7,8 +7,7 @@
       <p class="text-muted"><Sparkles /></p>
       <div class="flex-grow-1">
         <p v-if="status === 'error'" class="text-xxs text-danger">
-          Something went wrong. Try again.
-        </p>
+{{ errorMessage || "Something went wrong. Try again." }}        </p>
 
         <p v-else class="text-xxs mb-0">
           {{ suggestions }}
@@ -55,13 +54,14 @@ defineExpose({
 });
 
 const props = defineProps<{
-  suggestions?: T;
+  suggestions?: T | null; 
   status?: AsyncStatus;
+  errorMessage?: string | null
 }>();
 
 const emit = defineEmits<{
   retry: [];
-  apply: [value: T];
+  apply: [value: T | null] | null;
 }>();
 
 function onApply() {

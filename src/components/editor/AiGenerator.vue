@@ -13,8 +13,9 @@
       ref="popover"
       :suggestions="suggestion"
       :status="status"
+      :error-message="errorMessage"
       @retry="emit('generate')"
-      @apply="emit('apply', ($event))"
+      @apply="emit('apply', $event)"
     />
   </div>
 </template>
@@ -29,10 +30,12 @@ type AsyncStatus = "idle" | "loading" | "error" | "success";
 defineProps<{
   label: string;
   status: AsyncStatus;
- suggestion?: T;}>();
+  suggestion?: T | null;
+  errorMessage?: string | null;
+}>();
 
 const emit = defineEmits<{
-  apply: [value: T];
+  apply: [value: T | null] | null;
   generate: [];
 }>();
 

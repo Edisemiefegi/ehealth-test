@@ -10,6 +10,7 @@
             <header>
               <AiGenerator
                 label="TITLE"
+                :error-message="titleAi.errorMessage.value"
                 :status="titleAi.status.value"
                 :suggestion="titleAi.suggestion.value"
                 @generate="titleAi.generate"
@@ -35,6 +36,7 @@
             <section>
               <AiGenerator
                 label="SUMMARY"
+              :error-message="summaryAi.errorMessage.value"
                 :suggestion="summaryAi.suggestion.value"
                 :status="summaryAi.status.value"
                 @generate="summaryAi.generate"
@@ -54,6 +56,7 @@
           <div class="sticky-top z-0 pt-5 d-flex flex-column gap-3">
             <AiGenerator
               label="KEYWORDS"
+              :error-message="keywordsAi.errorMessage.value"
               :suggestion="keywordsAi.suggestion.value"
               :status="keywordsAi.status.value"
               @generate="keywordsAi.generate"
@@ -118,28 +121,32 @@ import { useAiSuggestion } from "../composable/useAiGenerator.ts";
 import { simulateRequest } from "../utils.ts";
 import AiGenerator from "../components/editor/AiGenerator.vue";
 import { useEditor } from "../composable/useEditor.ts";
+import { generateKeywordSuggestions, generateSummarySuggestion, generateTitleSuggestion } from "../api/ai.ts";
 
 const keywordInput = ref("");
 const { currentPost } = useEditor();
 
 const titleAi = useAiSuggestion<string>(() =>
-  simulateRequest("How to Structure a Blog Post Readers Actually Finish"),
+  generateTitleSuggestion(currentPost.content)
+  // simulateRequest("How to Structure a Blog Post Readers Actually Finish"),
 );
 
 const summaryAi = useAiSuggestion<string>(() =>
-  simulateRequest(
-    "This draft explores how thoughtful structure and clear writing can help readers stay engaged. It focuses on simplifying ideas, improving readability, and creating content that communicates its message effectively.",
-  ),
+  generateSummarySuggestion(currentPost.content)
+  // simulateRequest(
+  //   "This draft explores how thoughtful structure and clear writing can help readers stay engaged. It focuses on simplifying ideas, improving readability, and creating content that communicates its message effectively.",
+  // ),
 );
 
 const keywordsAi = useAiSuggestion<string[]>(() =>
-  simulateRequest([
-    "Blog writing",
-    "Content strategy",
-    "Headlines",
-    "Readability",
-    "Writing tips",
-  ]),
+generateKeywordSuggestions(currentPost.content)
+  // simulateRequest([
+  //   "Blog writing",
+  //   "Content strategy",
+  //   "Headlines",
+  //   "Readability",
+  //   "Writing tips",
+  // ]),
 );
 
 function applyKeywords(newKeywords: string | string[]) {
