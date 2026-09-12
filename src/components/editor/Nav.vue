@@ -5,8 +5,8 @@
     >
       <!--  Links -->
       <div class="d-flex align-items-center gap-3">
-        <RouterLink to="/"> <AngleLeft /></RouterLink>
         <Button
+          v-if="isEditor"
           @click="toggle"
           variant="secondary"
           size="sm"
@@ -21,23 +21,32 @@
         <!-- Actions -->
         <div class="d-flex align-items-center gap-2">
           <Button
+            @click="navigate"
+            variant="ghost"
             size="sm"
-            variant="outline"
-            :disabled="currentPost.saveState === 'saving'"
-            @click="onSaveDraft"
+            class="text-muted"
+            >{{ isEditor ? "All posts" : "Editor" }}</Button
           >
-            {{ currentPost.saveState === "saving" ? "Saving..." : "Draft" }}
-          </Button>
+          <div class="d-flex align-items-center gap-2" v-if="isEditor">
+            <Button
+              size="sm"
+              variant="outline"
+              :disabled="currentPost.saveState === 'saving'"
+              @click="onSaveDraft"
+            >
+              {{ currentPost.saveState === "saving" ? "Saving..." : "Draft" }}
+            </Button>
 
-          <Button
-            size="sm"
-            :disabled="currentPost.saveState === 'saving'"
-            @click="onPublish"
-          >
-            {{
-              currentPost.status === "published" ? "Published" : "Publish"
-            }}</Button
-          >
+            <Button
+              size="sm"
+              :disabled="currentPost.saveState === 'saving'"
+              @click="onPublish"
+            >
+              {{
+                currentPost.status === "published" ? "Published" : "Publish"
+              }}</Button
+            >
+          </div>
         </div>
 
         <!--  Profile -->
@@ -52,22 +61,40 @@
 </template>
 
 <script setup lang="ts">
-import { AngleLeft } from "@primeicons/vue";
 import Button from "../base/Button.vue";
 import { ref } from "vue";
 import DraftPopOver from "./DraftPopOver.vue";
+import { useRouter } from "vue-router";
 
 import { useToast } from "primevue/usetoast";
 import { useEditor } from "../../composable/useEditor.ts";
+const router = useRouter();
 
 const toast = useToast();
 
-
 const draftPopover = ref();
+
+const props = withDefaults(defineProps<{ isEditor?: boolean }>(), { isEditor: true });
+
+const emit = defineEmits<{
+  "createEditor": [];
+}>();
+
+function navigate() {
+  if (props.isEditor) {
+    router.push("/");
+    return;
+  }
+
+  emit("createEditor");
+}
+
 const toggle = (event: MouseEvent) => {
   draftPopover.value.toggle(event);
 };
-const { currentPost, saveCurrentDraft, publishCurrentPost, refreshDrafts } = useEditor();
+
+const { currentPost, saveCurrentDraft, publishCurrentPost, refreshDrafts } =
+  useEditor();
 
 async function onSaveDraft() {
   try {

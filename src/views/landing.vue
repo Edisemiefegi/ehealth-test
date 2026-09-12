@@ -1,39 +1,106 @@
 <template>
-  <div class="p-3">
-    <p class="fs-1">landing page</p>
-    <Button :disabled="isCreating" @click="createPost">
-      {{ isCreating ? "Creating..." : "Create post" }}
-    </Button>
-  </div>
+  <main class="bg-background vh-100 overflow-y-auto pt-5">
+    <Nav :is-editor="false" @create-editor="createPost" />
+
+    <div class="container py-5 d-flex flex-column gap-4">
+      <section
+        class="flex-sm-row flex-column justify-content-between align-items-end"
+      >
+        <div>
+          <p class="text-muted text-xxs mb-0 fw-light">LIBRARY</p>
+          <p class="fs-3 fw-semibold mb-0">All posts</p>
+          <p class="text-muted text-xxs fw-light">
+            Keep every idea in view, from the first rough draft to the finished
+            story.
+          </p>
+        </div>
+
+        <Button :disabled="isCreating" @click="createPost">
+          <Plus /> {{ isCreating ? "Creating..." : "New post" }}
+        </Button>
+      </section>
+
+      <section
+        class="d-flex justify-content-between border-top border-secondary-subtle border-bottom p-3 align-items-center text-muted"
+      >
+        <p class="text-xs mb-0">
+          <span class="fw-bold">{{ publishedPosts.length }}</span> stories in
+          your library
+        </p>
+        <Search />
+      </section>
+
+      <!-- Loading state -->
+      <section v-if="publishedLoading" class="text-center text-muted py-5">
+        Loading posts...
+      </section>
+
+      <!-- Empty state -->
+      <section
+        v-else-if="!publishedPosts.length"
+        class="text-center text-muted py-5"
+      >
+        No published posts yet. Publish a draft to see it here.
+      </section>
+
+      <!-- Posts grid -->
+      <section v-else class="row g-4">
+        <div v-for="post in publishedPosts" :key="post.post_id">
+          <PostCard :post="post" @preview="openPreview" />
+        </div>
+        <Postpreviewmodal ref="previewModal" :post="previewPost" />
+      </section>
+    </div>
+  </main>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+import Nav from "../components/editor/Nav.vue";
 import Button from "../components/base/Button.vue";
-import { useEditor } from "../composable/useEditor";
+import PostCard from "../components/blog/PostCard.vue";
+import { useEditor } from "../composable/useEditor.ts";
+import { Plus, Search } from "@primeicons/vue";
+import Postpreviewmodal from "../components/blog/Postpreviewmodal.vue";
+import type { Post, PostPreview } from "../types/index.ts";
+import { getAiSuggestion } from "../api/mockApi.ts";
 
 const router = useRouter();
-const { createNewPost } = useEditor();
+const { createNewPost, publishedPosts, publishedLoading, refreshPublished } =
+  useEditor();
 
 const isCreating = ref(false);
+const previewModal = ref();
+const previewPost = reactive<PostPreview>({
+  title: "",
+  excerpt: "",
+  content: "",
+  keywords: [],
+});
+
+onMounted(refreshPublished);
+
+async function openPreview(post: Post) {
+  previewPost.title = post.title;
+  previewPost.excerpt = post.excerpt;
+  previewPost.content = post.content;
+  previewPost.keywords = post.ai_suggestion_id
+    ? ((await getAiSuggestion(post.ai_suggestion_id))?.keywords ?? [])
+    : [];
+
+  previewModal.value?.open();
+}
 
 async function createPost() {
   if (isCreating.value) return;
 
   isCreating.value = true;
-
   try {
     const postId = await createNewPost();
-
     if (!postId) return;
 
-    await router.push({
-      name: "Editor",
-      params: {
-        id: postId,
-      },
-    });
+    await router.push({ name: "Editor", params: { id: postId } });
   } finally {
     isCreating.value = false;
   }

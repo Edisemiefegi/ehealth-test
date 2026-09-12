@@ -7,6 +7,7 @@ import {
   type SavePostInput,
   getPost,
   getAiSuggestion,
+  listPublished,
 } from "../api/mockApi";
 
 const currentPost = reactive({
@@ -21,6 +22,8 @@ const currentPost = reactive({
 
 const drafts = ref<Post[]>([]);
 const draftsLoading = ref(false);
+const publishedPosts = ref<Post[]>([]);
+const publishedLoading = ref(false);
 
 function reset() {
   currentPost.postId = undefined;
@@ -61,6 +64,15 @@ async function refreshDrafts() {
   }
 }
 
+async function refreshPublished() {
+  publishedLoading.value = true;
+  try {
+    publishedPosts.value = await listPublished();
+  } finally {
+    publishedLoading.value = false;
+  }
+}
+
 async function saveCurrentDraft() {
   currentPost.saveState = "saving";
   try {
@@ -81,7 +93,7 @@ async function publishCurrentPost() {
     currentPost.postId = post.post_id;
     currentPost.status = post.status;
     currentPost.saveState = "saved";
-    await refreshDrafts();
+    await Promise.all([refreshDrafts(), refreshPublished()]);
   } catch {
     currentPost.saveState = "error";
   }
@@ -124,5 +136,8 @@ export function useEditor() {
     createNewPost,
     reset,
     loadPostById,
+    publishedPosts,
+    publishedLoading,
+    refreshPublished,
   };
 }

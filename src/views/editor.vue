@@ -1,6 +1,6 @@
 <template>
   <main class="bg-background vh-100 overflow-y-auto pt-5">
-    <Nav />
+    <Nav :iseditor="true" />
 
     <div class="container">
       <div class="row g-4 py-5">
@@ -53,7 +53,8 @@
 
         <!-- Sidebar -->
         <aside class="col-12 col-lg-4">
-          <div class="sticky-top z-0 pt-5 d-flex flex-column gap-3">
+         <div class="sticky-top z-0 pt-5 ">
+           <div class=" d-flex flex-column mb-3  gap-3">
             <AiGenerator
               label="KEYWORDS"
               :error-message="keywordsAi.errorMessage.value"
@@ -102,8 +103,12 @@
               @apply="applyKeywords"
             />
           </div>
+
+          <Button class="w-100" @click="previewModal?.open()">Preview</Button>
+         </div>
         </aside>
       </div>
+      <Postpreviewmodal ref="previewModal" :post="currentPost" />
     </div>
   </main>
 </template>
@@ -116,37 +121,28 @@ import Button from "../components/base/Button.vue";
 import Input from "../components/base/Input.vue";
 import Editor from "primevue/editor";
 import SuggestionModal from "../components/editor/SuggestionModal.vue";
-import AiTextField from "../components/editor/AiTextField.vue";
 import { useAiSuggestion } from "../composable/useAiGenerator.ts";
-import { simulateRequest } from "../utils.ts";
 import AiGenerator from "../components/editor/AiGenerator.vue";
 import { useEditor } from "../composable/useEditor.ts";
+import Postpreviewmodal from "../components/blog/Postpreviewmodal.vue";
 import { generateKeywordSuggestions, generateSummarySuggestion, generateTitleSuggestion } from "../api/ai.ts";
 
 const keywordInput = ref("");
-const { currentPost } = useEditor();
+const previewModal = ref();
 
+const { currentPost } = useEditor();
 const titleAi = useAiSuggestion<string>(() =>
   generateTitleSuggestion(currentPost.content)
-  // simulateRequest("How to Structure a Blog Post Readers Actually Finish"),
 );
 
 const summaryAi = useAiSuggestion<string>(() =>
   generateSummarySuggestion(currentPost.content)
-  // simulateRequest(
-  //   "This draft explores how thoughtful structure and clear writing can help readers stay engaged. It focuses on simplifying ideas, improving readability, and creating content that communicates its message effectively.",
-  // ),
+
 );
 
 const keywordsAi = useAiSuggestion<string[]>(() =>
 generateKeywordSuggestions(currentPost.content)
-  // simulateRequest([
-  //   "Blog writing",
-  //   "Content strategy",
-  //   "Headlines",
-  //   "Readability",
-  //   "Writing tips",
-  // ]),
+ 
 );
 
 function applyKeywords(newKeywords: string | string[]) {

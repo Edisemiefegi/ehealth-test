@@ -110,6 +110,15 @@ export function listDrafts() {
   return simulateRequest(drafts, { delay: 500, failRate: 0 });
 }
 
+export function listPublished() {
+  const db = loadDb();
+  const published = db.posts
+    .filter((p) => p.status === "published")
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  return simulateRequest(published, { delay: 500, failRate: 0 });
+}
+
+
 export function getPost(postId: string) {
   const db = loadDb();
   const post = db.posts.find((p) => p.post_id === postId);
@@ -121,6 +130,8 @@ export function getAiSuggestion(suggestionId: string) {
   const suggestion = db.aiSuggestions.find((s) => s.suggestion_id === suggestionId);
   return simulateRequest(suggestion, { delay: 300, failRate: 0 });
 }
+
+
 
 
 

@@ -33,3 +33,11 @@ export interface AiSuggestion {
   keywords?: string[];
   // created_at: string;
 }
+
+export interface PostPreview {
+  title: string;
+  excerpt: string;
+  content: string;
+  keywords: string[];
+}
+ 
