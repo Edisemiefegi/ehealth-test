@@ -89,7 +89,7 @@
                     <Trash style="color: red" class="fw-bold" />
                   </Button>
 
-                  <Button @click="openDraft" variant="ghost">
+                  <Button @click.stop="openDraft(draft)" variant="ghost">
                     <ArrowRight />
                   </Button>
                 </div>
