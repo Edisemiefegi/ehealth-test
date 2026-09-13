@@ -1,7 +1,11 @@
 <template>
   <Popover
+    :style="{
+      width: '360px',
+      maxWidth: 'calc(100vw - 24px)',
+    }"
     ref="popover"
-    class="border w-25 border-secondary bg-white -z-3 border-opacity-25"
+    class="border border-secondary bg-white border-opacity-25"
   >
     <div class="d-flex gap-2 align-items-center">
       <p class="text-muted"><Sparkles /></p>
@@ -11,7 +15,7 @@
         </p>
 
         <p v-else-if="status === 'loading'">
-          <Spinner/>
+          <Spinner />
         </p>
 
         <p v-else class="text-xxs mb-0">
@@ -27,13 +31,18 @@
       <Button
         variant="ghost"
         size="sm"
-        class="text-muted"
+        class="text-muted flex-grow-1 flex-sm-grow-0"
         @click="emit('retry')"
       >
         Regenerate
       </Button>
 
-      <Button variant="secondary" size="sm" @click="onApply">
+      <Button
+        variant="secondary"
+        size="sm"
+        @click="onApply"
+        class="flex-grow-1 flex-sm-grow-0"
+      >
         <Check /> Apply
       </Button>
     </div>

@@ -11,12 +11,11 @@ interface GroqMessage {
 
 async function askGroq(messages: GroqMessage[]): Promise<string> {
   const apiKey = import.meta.env.VITE_GROQ_API_KEY as string | undefined;
-  console.log("apikey", apiKey)
-  if (!apiKey) {
-    throw new Error(
-      "Missing VITE_GROQ_API_KEY. Add it to your .env file and restart the dev server.",
-    );
-  }
+  // if (!apiKey) {
+  //   throw new Error(
+  //     "Missing VITE_GROQ_API_KEY. Add it to your .env file and restart the dev server.",
+  //   );
+  // }
 
   const response = await fetch(GROQ_API_URL, {
     method: "POST",

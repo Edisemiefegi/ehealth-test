@@ -5,35 +5,44 @@
     header="Preview"
     :style="{ width: '720px', maxWidth: '95vw' }"
   >
-
-    <article class="preview-article">
-      <h1 class="fw-bold mb-2">
+    <article class="w-100 overflow-hidden">
+      <h1 class="fw-bold mb-2 text-break">
         {{ post.title || "Untitled" }}
       </h1>
 
-      <p v-if="post.excerpt" class="text-muted fst-italic mb-3">
+      <p v-if="post.excerpt" class="text-muted fst-italic mb-3 text-break">
         {{ post.excerpt }}
       </p>
 
-      <div v-if="post.keywords.length" class="d-flex flex-wrap gap-2 mb-4">
+      <div
+        v-if="post.keywords.length"
+        class="d-flex flex-wrap gap-2 mb-4 overflow-hidden"
+      >
         <span
           v-for="keyword in post.keywords"
           :key="keyword"
-          class="rounded-pill px-2 py-1 bg-muted text-xxs"
+          class="rounded-pill px-2 py-1 bg-muted text-xxs text-break"
         >
           {{ keyword }}
         </span>
       </div>
 
-      <div v-if="post.content" class="ql-editor p-0" v-html="post.content" />
+      <div
+        v-if="post.content"
+        class="ql-editor p-0 w-100 overflow-hidden"
+        style="overflow-wrap: anywhere; word-break: break-word"
+        v-html="post.content"
+      />
+
       <p v-else class="text-muted">Nothing written yet.</p>
     </article>
 
     <template #footer>
-      <Button variant="outline" @click="close">Close</Button>
+      <Button variant="outline" @click="close"> Close </Button>
     </template>
   </Dialog>
 </template>
+
 
 <script setup lang="ts">
 import { ref } from "vue";

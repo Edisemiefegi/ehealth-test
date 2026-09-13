@@ -1,6 +1,6 @@
 <template>
   <main class="bg-background vh-100 overflow-y-auto pt-5">
-    <Nav :is-editor="false"/>
+    <Nav :is-editor="false" />
 
     <div class="container py-5 d-flex flex-column gap-4">
       <section
@@ -27,14 +27,12 @@
           <span class="fw-bold">{{ publishedPosts.length }}</span> stories in
           your library
         </p>
-        <Search />
+        <Search v-model="searchQuery" />
       </section>
 
-    
       <section v-if="publishedLoading" class="">
-        <Spinner/>
+        <Spinner />
       </section>
-
 
       <section
         v-else-if="!publishedPosts.length"
@@ -43,8 +41,15 @@
         No published posts yet. Publish a draft to see it here.
       </section>
 
-      <section v-else class="row g-4">
-        <div v-for="post in publishedPosts" :key="post.post_id">
+      <section
+        v-else-if="!filteredPosts.length"
+        class="text-center text-muted py-5"
+      >
+        No posts found for "{{ searchQuery }}".
+      </section>
+
+      <section v-else class="row g-4 ">
+        <div v-for="post in filteredPosts" :key="post.post_id">
           <PostCard :post="post" @preview="openPreview" />
         </div>
         <Postpreviewmodal ref="previewModal" :post="previewPost" />
@@ -54,22 +59,24 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import Nav from "../components/editor/Nav.vue";
 import Button from "../components/base/Button.vue";
 import PostCard from "../components/blog/PostCard.vue";
 import { useEditor } from "../composable/useEditor.ts";
-import { Plus, Search } from "@primeicons/vue";
+import { Plus } from "@primeicons/vue";
 import Postpreviewmodal from "../components/blog/Postpreviewmodal.vue";
 import type { Post, PostPreview } from "../types/index.ts";
 import { getAiSuggestion } from "../api/mockApi.ts";
 import Spinner from "../components/base/Spinner.vue";
+import Search from "../components/base/Search.vue";
 
 const router = useRouter();
 const { createNewPost, publishedPosts, publishedLoading, refreshPublished } =
   useEditor();
 
+const searchQuery = ref("");
 const isCreating = ref(false);
 const previewModal = ref();
 const previewPost = reactive<PostPreview>({
@@ -105,4 +112,21 @@ async function createPost() {
     isCreating.value = false;
   }
 }
+
+const filteredPosts = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase();
+
+  if (!query) {
+    return publishedPosts.value;
+  }
+
+  return publishedPosts.value.filter((post) => {
+    return (
+      post.title.toLowerCase().includes(query) ||
+      post.excerpt.toLowerCase().includes(query) ||
+      post.content.toLowerCase().includes(query) ||
+      post.keywords.some((keyword) => keyword.toLowerCase().includes(query))
+    );
+  });
+});
 </script>

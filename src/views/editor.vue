@@ -43,8 +43,11 @@
 
           <div class="col-lg-4 text-lg-end">
             <Button variant="outline" @click="createPost">
-              Start writing
-              <ArrowRight />
+              <Spinner v-if="isCreating" />
+              <template v-else>
+                Start writing
+                <ArrowRight />
+              </template>
             </Button>
           </div>
         </div>
@@ -124,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import Nav from "../components/editor/Nav.vue";
@@ -133,24 +136,33 @@ import { useEditor } from "../composable/useEditor";
 import type { Post } from "../types";
 import { formatRelativeDate } from "../utils";
 import { ArrowRight, FileEdit, Pencil, Trash } from "@primeicons/vue";
+import Spinner from "../components/base/Spinner.vue";
 
 const router = useRouter();
 
 const { drafts, refreshDrafts, createNewPost, deleteDraft } = useEditor();
+const isCreating = ref(false);
 
 onMounted(refreshDrafts);
 
 async function createPost() {
-  const postId = await createNewPost();
+  if (isCreating.value) return;
 
-  if (!postId) return;
+  isCreating.value = true;
+  try {
+    const postId = await createNewPost();
 
-  await router.push({
-    name: "EditPost",
-    params: {
-      id: postId,
-    },
-  });
+    if (!postId) return;
+
+    await router.push({
+      name: "EditPost",
+      params: {
+        id: postId,
+      },
+    });
+  } finally {
+    isCreating.value = false;
+  }
 }
 
 function openDraft(post: Post) {

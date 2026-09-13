@@ -16,6 +16,11 @@ const routes = [
     name: "EditPost",
     component: () => import("./views/editPost.vue"),
   },
+   {
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    component: () => import("./views/notFound.vue"),
+  },
   
 ];
 const router = createRouter({
